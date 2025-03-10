@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  :root {
+    --background: #FFBEA3;    /* Soft peach */
+    --foreground: #1F2937;
+    --card: #FFBEA3;
+    --card-foreground: #1F2937;
+    --popover: #FFBEA3;
+    --popover-foreground: #1F2937;
+    --primary: #E74C7A;       /* Vibrant pink */
+    --primary-foreground: #FFF1F0;
+    --secondary: #1E4B8E;     /* Deep blue */
+    --secondary-foreground: #E6F0FF;
+    --muted: #2A7A78;        /* Teal */
+    --muted-foreground: #E6FFFD;
+    --accent: #E74C7A;       /* Pink accent */
+    --accent-foreground: #FFF1F0;
+    --destructive: #991B1B;
+    --destructive-foreground: #FEE2E2;
+    --border: #E74C7A;
+    --input: #1E4B8E;
+    --ring: #E74C7A;
+    --chart-1: #6366F1;
+    --chart-2: #22D3EE;
+    --chart-3: #F43F5E;
+    --chart-4: #10B981;
+    --chart-5: #F59E0B;
+    --radius: 0.5rem
+  }
+}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0.5in;
+  }
+
+  body {
+    background: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide everything except the resume content */
+  body > *:not(.resume-container) {
+    display: none;
+  }
+}

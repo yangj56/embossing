@@ -1,0 +1,30 @@
+const config = {
+  arrowParens: "always",
+  printWidth: 100,
+  singleQuote: false,
+  jsxSingleQuote: false,
+  semi: true,
+  trailingComma: "all",
+  tabWidth: 2,
+  importOrder: [
+    "^(react/(.*)$)|^(react$)|^(react-native(.*)$)",
+    "^(next/(.*)$)|^(next$)",
+    "<THIRD_PARTY_MODULES>",
+    "",
+    "^@repo/(.*)$",
+    "",
+    "^~/utils/(.*)$",
+    "^~/components/(.*)$",
+    "^~/styles/(.*)$",
+    "^~/(.*)$",
+    "^[./]",
+  ],
+  importOrderSeparation: false,
+  importOrderSortSpecifiers: true,
+  importOrderBuiltinModulesToTop: true,
+  importOrderParserPlugins: ["typescript", "jsx", "decorators-legacy"],
+  importOrderMergeDuplicateImports: true,
+  importOrderCombineTypeAndValueImports: true,
+};
+
+module.exports = config;
