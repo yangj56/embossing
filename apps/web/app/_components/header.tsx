@@ -32,17 +32,8 @@ export const Header = (): JSX.Element => {
       <div className="mx-auto max-w-7xl px-4">
         <nav className="flex h-16 items-center justify-between">
           <div className="hidden items-center space-x-8 md:flex">
-            <Link href="/products" className="text-gray-900 hover:opacity-80">
-              Products
-            </Link>
-            <Link href="/about" className="text-gray-900 hover:opacity-80">
-              About
-            </Link>
-            <Link href="/how-to-buy" className="text-gray-900 hover:opacity-80">
-              How to buy?
-            </Link>
-            <Link href="/serial" className="text-gray-900 hover:opacity-80">
-              Device Manager
+            <Link href="/kiosk" className="text-gray-900 hover:opacity-80">
+              Kioks
             </Link>
           </div>
 

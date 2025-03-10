@@ -1,110 +1,185 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
+import React, { useState, useRef } from "react";
 import { DrawingPad } from "./drawing-pad";
 
 type Props = {
   apiUrl: string;
 };
 
-export function FrontKiosk({ apiUrl }: Props) {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    embossingDepth: 5,
-    embossingSpeed: 50,
-    imageType: "svg",
-  });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const handleSaveDesign = (dataUrl: string) => {
-    // Send the design to your Raspberry Pi API
-    // dataUrl contains the PNG image data as a base64 string
-    console.log("Design saved:", dataUrl);
+type Model = "engraving" | "embroidery";
 
-    // Example: Send to API
-    fetch("http://your-raspberry-pi-api/api/emboss", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        image: dataUrl,
-        // Add other metadata as needed
-      }),
-    });
-  };
+export function FrontKiosk({ apiUrl }: Props) {
+  const [userData, setUserData] = useState({
+    name: "",
+    contactNumber: "",
+  });
+  const [selectedModel, setSelectedModel] = useState<Model>("engraving");
+  const [designImage, setDesignImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<{
     success: boolean;
     message: string;
   } | null>(null);
 
+  // Create a ref to access the DrawingPad component
+  const drawingPadRef = useRef<{ saveCanvas: () => string | null }>(null);
+
   // Handle form input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setUserData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle model selection change
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedModel(e.target.value as Model);
+  };
 
-    // Check if file is an image
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
-      return;
-    }
+  // Helper function to check if the drawing is empty
+  const isDrawingEmpty = (dataUrl: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(true); // If we can't check, assume it's empty to be safe
+          return;
+        }
 
-    setSelectedFile(file);
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
 
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+        // Get image data
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Count non-white pixels
+        let nonWhitePixels = 0;
+        const threshold = 5; // Tolerance for "almost white" pixels
+
+        for (let i = 0; i < data.length; i += 4) {
+          // Check if pixel is not white (allowing for some tolerance)
+          // A pixel is non-white if any RGB channel differs significantly from 255
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          if (
+            r &&
+            g &&
+            b &&
+            r < 255 - threshold && // R
+            g < 255 - threshold && // G
+            b < 255 - threshold // B
+          ) {
+            nonWhitePixels++;
+
+            // Early exit if we find enough non-white pixels
+            if (nonWhitePixels > 50) {
+              resolve(false);
+              return;
+            }
+          }
+        }
+
+        // If we found very few non-white pixels, consider it empty
+        resolve(nonWhitePixels < 50);
+      };
+
+      img.onerror = () => {
+        resolve(true); // If we can't load the image, assume it's empty to be safe
+      };
+
+      img.src = dataUrl;
+    });
   };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedFile) {
-      alert("Please select an image file");
+    // Validate required fields
+    if (!userData.name.trim()) {
+      setSubmitResult({
+        success: false,
+        message: "Please enter your name",
+      });
       return;
     }
+
+    if (!userData.contactNumber.trim()) {
+      setSubmitResult({
+        success: false,
+        message: "Please enter your contact number",
+      });
+      return;
+    }
+
+    // Validate contact number format (optional)
+    const phoneRegex = /^\+?[0-9\s\-()]{7,15}$/;
+    if (!phoneRegex.test(userData.contactNumber.trim())) {
+      setSubmitResult({
+        success: false,
+        message: "Please enter a valid contact number",
+      });
+      return;
+    }
+
+    // First, save the design from the drawing pad
+    if (!drawingPadRef.current) {
+      alert("Drawing pad not initialized");
+      return;
+    }
+
+    // Get the canvas data URL from the drawing pad
+    const dataUrl = drawingPadRef.current.saveCanvas();
+
+    if (!dataUrl) {
+      setSubmitResult({
+        success: false,
+        message: "Please create a design before submitting",
+      });
+      return;
+    }
+    console.log("dataUrl", dataUrl);
+    // Check if the canvas is empty (mostly white pixels)
+    const isCanvasEmpty = await isDrawingEmpty(dataUrl);
+    if (isCanvasEmpty) {
+      setSubmitResult({
+        success: false,
+        message: "Please create a design before submitting",
+      });
+      return;
+    }
+
+    // Set the design image
+    setDesignImage(dataUrl);
 
     setIsSubmitting(true);
     setSubmitResult(null);
 
     try {
-      // Create form data for API submission
-      const apiFormData = new FormData();
-      apiFormData.append("name", formData.name);
-      apiFormData.append("description", formData.description);
-      apiFormData.append("embossingDepth", formData.embossingDepth.toString());
-      apiFormData.append("embossingSpeed", formData.embossingSpeed.toString());
-      apiFormData.append("imageType", formData.imageType);
-      apiFormData.append("image", selectedFile);
-
-      // Replace with your Raspberry Pi API endpoint
-      // For local development: http://localhost:5000/api/emboss
-      // For production: http://your-raspberry-pi-ip:5000/api/emboss
-      const destionationUrl = `${apiUrl}/api/emboss`;
+      // Prepare data for API submission
+      const submissionData = {
+        name: userData.name,
+        contactNumber: userData.contactNumber,
+        image: dataUrl,
+        model: selectedModel,
+        timestamp: new Date().toISOString(),
+      };
 
       // Send data to API
-      const response = await fetch(destionationUrl, {
+      const response = await fetch(apiUrl, {
         method: "POST",
-        body: apiFormData,
-        // Don't set Content-Type header when using FormData
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
       });
 
       const result = await response.json();
@@ -112,10 +187,13 @@ export function FrontKiosk({ apiUrl }: Props) {
       if (response.ok) {
         setSubmitResult({
           success: true,
-          message: "Successfully sent to embossing device!",
+          message: `Successfully sent to ${selectedModel} device!`,
         });
+        // Reset form after successful submission
+        setUserData({ name: "", contactNumber: "" });
+        setDesignImage(null);
       } else {
-        throw new Error(result.message || "Failed to send to embossing device");
+        throw new Error(result.message || `Failed to send to ${selectedModel} device`);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -129,152 +207,110 @@ export function FrontKiosk({ apiUrl }: Props) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold">Embossing Device Manager</h1>
-      <p className="mb-6 text-gray-600">
-        This page allows you to send embossing jobs to your Raspberry Pi, which will control the
-        embossing machine. Upload an image and set parameters for the embossing process.
-      </p>
-
+    <div className="container mx-auto px-4">
       <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-md">
-        <h2 className="mb-4 text-xl font-semibold">Submit Embossing Job</h2>
+        <h2 className="mb-6 text-2xl font-semibold">Create Your Design</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Job Name */}
-          <div>
-            <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
-              Job Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              className="w-full rounded-lg border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Enter a name for this embossing job"
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700">
-              Description (Optional)
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full rounded-lg border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Enter any additional details about this job"
-            />
-          </div>
-
-          {/* Embossing Parameters */}
+          {/* User Information */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label
-                htmlFor="embossingDepth"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                Embossing Depth (1-10)
+              <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
+                Your Name
               </label>
               <input
-                type="number"
-                id="embossingDepth"
-                name="embossingDepth"
-                value={formData.embossingDepth}
+                type="text"
+                id="name"
+                name="name"
+                value={userData.name}
                 onChange={handleInputChange}
-                min="1"
-                max="10"
-                required
                 className="w-full rounded-lg border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Enter your name"
               />
             </div>
 
             <div>
               <label
-                htmlFor="embossingSpeed"
+                htmlFor="contactNumber"
                 className="mb-1 block text-sm font-medium text-gray-700"
               >
-                Embossing Speed (1-100)
+                Contact Number
               </label>
               <input
-                type="number"
-                id="embossingSpeed"
-                name="embossingSpeed"
-                value={formData.embossingSpeed}
+                type="tel"
+                id="contactNumber"
+                name="contactNumber"
+                value={userData.contactNumber}
                 onChange={handleInputChange}
-                min="1"
-                max="100"
-                required
                 className="w-full rounded-lg border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Enter your contact number"
               />
             </div>
 
             <div>
-              <label htmlFor="imageType" className="mb-1 block text-sm font-medium text-gray-700">
-                Image Type
+              <label htmlFor="modelSelect" className="mb-1 block text-sm font-medium text-gray-700">
+                Select Model
               </label>
               <select
-                id="imageType"
-                name="imageType"
-                value={formData.imageType}
-                onChange={handleInputChange}
+                id="modelSelect"
+                value={selectedModel}
+                onChange={handleModelChange}
                 className="w-full rounded-lg border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
-                <option value="svg">SVG</option>
-                <option value="png">PNG</option>
-                <option value="jpg">JPG</option>
+                <option value="engraving">Engraving</option>
+                <option value="embroidery">Embroidery</option>
               </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {selectedModel === "engraving"
+                  ? "Engraving creates designs on hard surfaces"
+                  : "Embroidery creates designs on fabric"}
+              </p>
             </div>
           </div>
 
-          {/* Image Upload */}
-          <div>
-            <label htmlFor="image" className="mb-1 block text-sm font-medium text-gray-700">
-              Upload Image
+          {/* Drawing Pad */}
+          <div className="flex w-full flex-col items-center justify-center">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Create Your Design
             </label>
-            <input
-              type="file"
-              id="image"
-              name="image"
-              onChange={handleFileChange}
-              accept="image/*"
-              className="w-full rounded-lg border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
+            <p className="mb-4 text-sm text-gray-500">
+              Use the drawing tools below to create your {selectedModel} design
+            </p>
+            <DrawingPad width={1200} height={500} ref={drawingPadRef} hideSaveButton={true} />
           </div>
 
-          {/* Image Preview */}
-          {imagePreview && (
+          {/* Design Preview */}
+          {designImage && (
             <div>
-              <p className="mb-2 text-sm font-medium text-gray-700">Image Preview:</p>
+              <p className="mb-2 text-sm font-medium text-gray-700">Your Design (Saved):</p>
               <div className="relative h-64 w-full overflow-hidden rounded-lg border border-gray-300">
-                <Image src={imagePreview} alt="Preview" fill style={{ objectFit: "contain" }} />
+                <img src={designImage} alt="Your design" className="h-full w-full object-contain" />
               </div>
             </div>
           )}
-          <DrawingPad width={1000} height={600} onSave={handleSaveDesign} />
 
           {/* Submit Button */}
-          <div>
+          <div className="flex items-center justify-between">
             <button
               type="submit"
-              disabled={isSubmitting || !selectedFile}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
+              disabled={isSubmitting}
+              className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:bg-gray-400"
             >
-              {isSubmitting ? "Sending..." : "Send to Embossing Device"}
+              {isSubmitting
+                ? "Sending..."
+                : `Submit ${selectedModel.charAt(0).toUpperCase() + selectedModel.slice(1)} Design`}
             </button>
+
+            <p className="text-sm text-gray-600">
+              to save and send your design to the {selectedModel} machine
+            </p>
           </div>
         </form>
 
         {/* Result Message */}
         {submitResult && (
           <div
-            className={`mt-4 rounded-lg p-4 ${
+            className={`mt-6 rounded-lg p-4 ${
               submitResult.success ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             }`}
           >
@@ -286,13 +322,10 @@ export function FrontKiosk({ apiUrl }: Props) {
       <div className="rounded-lg bg-gray-100 p-4">
         <h2 className="mb-2 text-xl font-bold">Instructions</h2>
         <ol className="list-decimal space-y-2 pl-5">
-          <li>Enter a name for your embossing job</li>
-          <li>Add an optional description with any special instructions</li>
-          <li>Set the embossing depth (1-10) - higher values create deeper impressions</li>
-          <li>Set the embossing speed (1-100) - lower values create more precise results</li>
-          <li>Select the image type (SVG recommended for best results)</li>
-          <li>Upload your image file</li>
-          <li>Click send to start the job</li>
+          <li>Enter your name and contact number</li>
+          <li>Select the model type ({selectedModel})</li>
+          <li>Use the drawing tools to create your design</li>
+          <li>Your design will be saved and sent to the {selectedModel} machine</li>
         </ol>
       </div>
     </div>

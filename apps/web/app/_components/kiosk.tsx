@@ -10,6 +10,12 @@ type ApiConfig = {
   mode: ConnectionMode;
   localUrl: string;
   webUrl: string;
+  embossingSpeed?: number;
+  embossingDuration?: number;
+  embossingDepth?: number;
+  acceleration?: number;
+  jerk?: number;
+  coolingTime?: number;
 };
 
 export function Kiosk() {
@@ -19,11 +25,18 @@ export function Kiosk() {
   const [apiConfig, setApiConfig] = useState<ApiConfig>({
     mode: "local",
     localUrl: "http://localhost:5000/api/emboss",
-    webUrl: "",
+    webUrl: "https://embossing-api.onrender.com/api/emboss",
+    embossingSpeed: 50,
+    embossingDuration: 200,
+    embossingDepth: 5,
+    acceleration: 1000,
+    jerk: 8,
+    coolingTime: 0,
   });
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   // Load saved config from localStorage on component mount
   useEffect(() => {
@@ -96,8 +109,6 @@ export function Kiosk() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="relative mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Embossing Device Manager</h1>
-
         {/* Settings Button */}
         <button
           onClick={() => setShowSettings(true)}
@@ -108,20 +119,15 @@ export function Kiosk() {
         </button>
       </div>
 
-      <p className="mb-6 text-gray-600">
-        This page allows you to connect to and communicate with USB/Serial devices for the embossing
-        kiosk. You can send commands and images to the embossing device.
-      </p>
-
       <div className="mb-8">
         <FrontKiosk apiUrl={apiConfig.mode === "local" ? apiConfig.localUrl : apiConfig.webUrl} />
       </div>
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <div className="mb-4 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50">
+          <div className="my-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-lg">
+            <div className="sticky top-0 z-10 mb-4 flex items-center justify-between bg-white pb-2">
               <h2 className="text-xl font-bold">API Configuration</h2>
               <button
                 onClick={() => setShowSettings(false)}
@@ -233,6 +239,194 @@ export function Kiosk() {
                       <p className="mt-1 text-xs text-gray-500">
                         Use this for connecting to a remote API endpoint
                       </p>
+                    </div>
+                  )}
+
+                  {/* Embossing Speed Configuration */}
+                  <div>
+                    <label
+                      htmlFor="embossingSpeed"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      Embossing Speed (mm/s)
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="range"
+                        id="embossingSpeed"
+                        min="1"
+                        max="100"
+                        value={apiConfig.embossingSpeed || 50}
+                        onChange={(e) =>
+                          setApiConfig({
+                            ...apiConfig,
+                            embossingSpeed: parseInt(e.target.value),
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <span className="w-12 text-center">{apiConfig.embossingSpeed || 50}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Controls how fast the embossing head moves. Lower values create more precise
+                      results.
+                    </p>
+                  </div>
+
+                  {/* Embossing Duration Configuration */}
+                  <div>
+                    <label
+                      htmlFor="embossingDuration"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      Embossing Duration (ms)
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="range"
+                        id="embossingDuration"
+                        min="50"
+                        max="500"
+                        step="10"
+                        value={apiConfig.embossingDuration || 200}
+                        onChange={(e) =>
+                          setApiConfig({
+                            ...apiConfig,
+                            embossingDuration: parseInt(e.target.value),
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <span className="w-12 text-center">{apiConfig.embossingDuration || 200}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Controls how long the embossing head stays at each point. Higher values create
+                      deeper impressions.
+                    </p>
+                  </div>
+
+                  {/* Embossing Depth Configuration */}
+                  <div>
+                    <label
+                      htmlFor="embossingDepth"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      Embossing Depth (1-10)
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="range"
+                        id="embossingDepth"
+                        min="1"
+                        max="10"
+                        value={apiConfig.embossingDepth || 5}
+                        onChange={(e) =>
+                          setApiConfig({
+                            ...apiConfig,
+                            embossingDepth: parseInt(e.target.value),
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <span className="w-12 text-center">{apiConfig.embossingDepth || 5}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Controls how deep the embossing head presses into the material.
+                    </p>
+                  </div>
+
+                  {/* Advanced Settings Toggle */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      {showAdvancedSettings ? "Hide Advanced Settings" : "Show Advanced Settings"}
+                    </button>
+                  </div>
+
+                  {/* Advanced Settings */}
+                  {showAdvancedSettings && (
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <h3 className="mb-3 text-sm font-medium text-gray-700">Advanced Settings</h3>
+
+                      {/* Acceleration Setting */}
+                      <div className="mb-3">
+                        <label
+                          htmlFor="acceleration"
+                          className="mb-1 block text-sm font-medium text-gray-700"
+                        >
+                          Acceleration (mm/s²)
+                        </label>
+                        <input
+                          type="number"
+                          id="acceleration"
+                          min="100"
+                          max="3000"
+                          value={apiConfig.acceleration || 1000}
+                          onChange={(e) =>
+                            setApiConfig({
+                              ...apiConfig,
+                              acceleration: parseInt(e.target.value),
+                            })
+                          }
+                          className="w-full rounded-lg border border-gray-300 p-2"
+                        />
+                      </div>
+
+                      {/* Jerk Setting */}
+                      <div className="mb-3">
+                        <label
+                          htmlFor="jerk"
+                          className="mb-1 block text-sm font-medium text-gray-700"
+                        >
+                          Jerk (mm/s)
+                        </label>
+                        <input
+                          type="number"
+                          id="jerk"
+                          min="1"
+                          max="20"
+                          value={apiConfig.jerk || 8}
+                          onChange={(e) =>
+                            setApiConfig({
+                              ...apiConfig,
+                              jerk: parseInt(e.target.value),
+                            })
+                          }
+                          className="w-full rounded-lg border border-gray-300 p-2"
+                        />
+                      </div>
+
+                      {/* Cooling Time */}
+                      <div>
+                        <label
+                          htmlFor="coolingTime"
+                          className="mb-1 block text-sm font-medium text-gray-700"
+                        >
+                          Cooling Time (s)
+                        </label>
+                        <input
+                          type="number"
+                          id="coolingTime"
+                          min="0"
+                          max="60"
+                          step="5"
+                          value={apiConfig.coolingTime || 0}
+                          onChange={(e) =>
+                            setApiConfig({
+                              ...apiConfig,
+                              coolingTime: parseInt(e.target.value),
+                            })
+                          }
+                          className="w-full rounded-lg border border-gray-300 p-2"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Time to wait between embossing operations to prevent overheating (0 to
+                          disable)
+                        </p>
+                      </div>
                     </div>
                   )}
 
