@@ -22,8 +22,15 @@ const AVAILABLE_FONTS = [
   { name: "Comic Sans MS", value: "Comic Sans MS, cursive" },
 ] as const;
 
-// Use forwardRef to allow parent components to access this component's methods
-export const DrawingPad = forwardRef<{ saveCanvas: () => string | null }, DrawingPadProps>(
+// Define the interface for the ref object that will be exposed
+export interface DrawingPadRef {
+  saveCanvas: () => string | null;
+  isEmpty: () => boolean;
+  // Add any other methods you want to expose
+}
+
+// Use forwardRef with the defined interface
+export const DrawingPad = forwardRef<DrawingPadRef, DrawingPadProps>(
   ({ width = 600, height = 400, onSave, hideSaveButton = false }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<Canvas | null>(null);
@@ -34,7 +41,7 @@ export const DrawingPad = forwardRef<{ saveCanvas: () => string | null }, Drawin
     const [showTextInput, setShowTextInput] = useState<boolean>(false);
     const [selectedFont, setSelectedFont] = useState<string>(AVAILABLE_FONTS[0].value);
 
-    // Expose the saveCanvas method to parent components
+    // Use useImperativeHandle to expose methods that match the interface
     useImperativeHandle(ref, () => ({
       saveCanvas: () => {
         if (!fabricCanvasRef.current) return null;
@@ -52,6 +59,12 @@ export const DrawingPad = forwardRef<{ saveCanvas: () => string | null }, Drawin
         }
 
         return dataUrl;
+      },
+
+      isEmpty: () => {
+        if (!fabricCanvasRef.current) return true;
+        // Check if the canvas is empty (has no objects or only has the background)
+        return fabricCanvasRef.current.isEmpty();
       },
     }));
 

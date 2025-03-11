@@ -44,7 +44,9 @@
     "electron-builder": "^24.13.3",
     "@serialport/parser-readline": "^13.0.0",
     "usb": "^2.15.0",
-    "fabric": "^6.6.1"
+    "fabric": "^6.6.1",
+    "react-hook-form": "^7.51.2",
+    "@radix-ui/react-select": "^2.1.6"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
