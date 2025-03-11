@@ -28,14 +28,14 @@ export function FrontKiosk({ apiUrl }: Props) {
     reset,
     watch,
     setValue,
-    control,
   } = useForm<FormInputs>({
     defaultValues: {
       name: "",
       contactNumber: "",
       model: "engraving",
     },
-    mode: "onChange",
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
   const selectedModel = watch("model");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,7 +68,6 @@ export function FrontKiosk({ apiUrl }: Props) {
 
     // Check if the canvas is empty (mostly white pixels)
     const isCanvasEmpty = drawingPadRef.current?.isEmpty();
-    console.log(`isCanvasEmpty`, isCanvasEmpty);
 
     if (isCanvasEmpty) {
       setSubmitResult({
@@ -135,7 +134,7 @@ export function FrontKiosk({ apiUrl }: Props) {
                 id="name"
                 {...register("name", {
                   required: "Name is required",
-                  minLength: { value: 2, message: "Name must be at least 2 characters" },
+                  minLength: { value: 1, message: "Name must be at least 1 characters" },
                 })}
                 className="w-full rounded-lg border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="Enter your name"
@@ -206,7 +205,7 @@ export function FrontKiosk({ apiUrl }: Props) {
           </div>
 
           {/* Submit Button */}
-          <div className="flex items-center justify-between">
+          <div className="mb-8 mt-4 flex items-center justify-between">
             <button
               type="submit"
               disabled={isSubmitting || !isValid}
@@ -222,7 +221,7 @@ export function FrontKiosk({ apiUrl }: Props) {
         </form>
       </div>
 
-      <div className="rounded-lg bg-gray-100 p-4">
+      <div className="mt-4 rounded-lg bg-gray-100 p-4">
         <h2 className="mb-2 text-xl font-bold">Instructions</h2>
         <ol className="list-decimal space-y-2 pl-5">
           <li>Enter your name and contact number</li>
