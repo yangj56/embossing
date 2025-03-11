@@ -7,6 +7,7 @@ import type { DrawingPadRef } from "./drawing-pad";
 import { DrawingPad } from "./drawing-pad";
 import { Input } from "./shadcn/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./shadcn/select";
+import { Button } from "./shadcn/button";
 
 type Props = {
   apiUrl: string;
@@ -206,13 +207,9 @@ export function FrontKiosk({ apiUrl }: Props) {
 
           {/* Submit Button */}
           <div className="mb-8 mt-4 flex items-center justify-between">
-            <button
-              type="submit"
-              disabled={isSubmitting || !isValid}
-              className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:bg-gray-400"
-            >
+            <Button variant={"default"} type="submit" disabled={isSubmitting || !isValid}>
               {isSubmitting ? "Sending..." : `Submit Design`}
-            </button>
+            </Button>
 
             <p className="text-sm text-gray-600">
               to save and send your design to the {selectedModel} machine

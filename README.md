@@ -5,17 +5,17 @@ A desktop application for managing embossing machines, built with Next.js and El
 ## 🚀 Features
 
 - **Electron.js** desktop application with **Next.js** web interface
-- **USB/Serial Communication** for connecting to embossing hardware
-- **PDF Generation** for creating embossing templates
-- **Modern UI** with Tailwind CSS
+- **HTTP Communication** for connecting to embossing hardware
+- **Drawing Canvas** for creating custom embossing designs
+- **Modern UI** with Tailwind CSS and Shadcn UI components
 - **Type-safe** development with TypeScript
+- **Configurable Settings** for local or remote API connections
 
 ## 📁 Project Structure
 
 The project is organized as a monorepo using Turborepo:
 
 - `apps/web`: Next.js web application with Electron integration
-- `apps/cms`: Payload CMS for content management (optional)
 - `packages`: Shared components and configurations
 
 ## 🛠️ Tech Stack
@@ -23,9 +23,10 @@ The project is organized as a monorepo using Turborepo:
 - [Electron.js](https://www.electronjs.org/) - Desktop application framework
 - [Next.js](https://nextjs.org/) - React framework
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Shadcn UI](https://ui.shadcn.com/) - UI component library
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [SerialPort](https://serialport.io/) - Serial port communication
-- [PDF Generation](https://react-pdf.org/) - PDF template creation
+- [Fabric.js](http://fabricjs.com/) - Canvas drawing library
+- [React Hook Form](https://react-hook-form.com/) - Form validation
 
 ## 🚦 Getting Started
 
@@ -68,16 +69,34 @@ cd apps/web
 pnpm electron:build
 ```
 
-## 📱 USB/Serial Communication
+## 🌐 HTTP Communication
 
-The application includes a Serial Port Manager that allows you to:
+The application communicates with embossing machines over HTTP:
 
-1. Scan for available USB/Serial devices
-2. Connect to embossing machines
-3. Send commands and receive data
-4. Monitor communication in real-time
+1. **Local Mode**: Connect to a machine on your local network
+2. **Web Mode**: Connect to a remote API endpoint
 
-To access the Serial Port Manager, navigate to `/serial` in the application.
+The admin settings panel allows you to configure:
+- API endpoints (local and web URLs)
+- Embossing parameters (speed, duration, depth)
+- Advanced machine settings (acceleration, jerk, cooling time)
+
+## 🎨 Design Creation
+
+The application includes a drawing canvas that allows users to:
+
+1. Create freehand drawings
+2. Add text with various fonts
+3. Use eraser and selection tools
+4. Save designs for embossing
+
+## 📱 User Interface
+
+The kiosk interface is designed for ease of use:
+- Simple form for user information
+- Interactive drawing canvas
+- Model selection (engraving or embroidery)
+- Fullscreen mode for kiosk deployment
 
 ## 📄 License
 
@@ -89,4 +108,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Electron.js team for the desktop application framework
 - Next.js team for the React framework
-- SerialPort team for the serial communication library
+- Fabric.js team for the canvas drawing library

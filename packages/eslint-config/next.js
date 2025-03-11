@@ -1,10 +1,9 @@
 /** @type {import("eslint").Linter.Config} */
 const config = {
   parser: "@typescript-eslint/parser",
-  plugins: ["import", "@typescript-eslint", "turbo"],
+  plugins: ["import", "@typescript-eslint"],
   ignorePatterns: [
     "node_modules/**",
-    "storybook-static/**",
     ".next/**",
     "out/**",
     "dist/**",
@@ -17,7 +16,6 @@ const config = {
   },
   extends: [
     "next",
-    "turbo",
     "plugin:@typescript-eslint/recommended",
     "plugin:sonarjs/recommended",
     "plugin:prettier/recommended",

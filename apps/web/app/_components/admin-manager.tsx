@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { Settings, X } from "lucide-react";
 import { useSettings } from "../context/settings";
+import { FullscreenControls } from "./full-screen-controller";
+import { Button } from "./shadcn/button";
 
 export function AdminManager() {
   const { isAuthenticated, authenticate, logout, apiConfig, updateApiConfig } = useSettings();
@@ -58,13 +60,14 @@ export function AdminManager() {
   return (
     <div className="relative">
       {/* Settings Button */}
-      <button
+      <Button
         onClick={() => setShowSettings(true)}
-        className="rounded-full bg-gray-200 p-2 hover:bg-gray-300"
+        variant="ghost"
+        size="icon"
         aria-label="Settings"
       >
         <Settings size={24} />
-      </button>
+      </Button>
 
       {/* Settings Modal */}
       {showSettings && (
@@ -72,13 +75,14 @@ export function AdminManager() {
           <div className="my-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-lg">
             <div className="sticky top-0 z-10 mb-4 flex items-center justify-between bg-white pb-2">
               <h2 className="text-xl font-bold">Admin Configuration</h2>
-              <button
+              <Button
                 onClick={() => setShowSettings(false)}
-                className="rounded-full p-1 hover:bg-gray-200"
+                variant="ghost"
+                size="icon"
                 aria-label="Close"
               >
                 <X size={24} />
-              </button>
+              </Button>
             </div>
 
             {!isAuthenticated ? (
@@ -103,12 +107,9 @@ export function AdminManager() {
 
                 {error && <p className="text-sm text-red-600">{error}</p>}
 
-                <button
-                  type="submit"
-                  className="w-full rounded-lg bg-blue-600 py-2 text-white hover:bg-blue-700"
-                >
+                <Button type="submit" className="w-full">
                   Authenticate
-                </button>
+                </Button>
               </form>
             ) : (
               <div className="space-y-4">
@@ -277,13 +278,14 @@ export function AdminManager() {
 
                   {/* Advanced Settings Toggle */}
                   <div>
-                    <button
+                    <Button
                       type="button"
+                      variant="link"
                       onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-                      className="text-sm text-blue-600 hover:text-blue-800"
+                      className="h-auto p-0"
                     >
                       {showAdvancedSettings ? "Hide Advanced Settings" : "Show Advanced Settings"}
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Advanced Settings */}
@@ -371,21 +373,23 @@ export function AdminManager() {
                   {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
 
                   <div className="flex space-x-2">
-                    <button
-                      type="submit"
-                      className="flex-1 rounded-lg bg-blue-600 py-2 text-white hover:bg-blue-700"
-                    >
+                    <Button type="submit" className="flex-1">
                       Save Configuration
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
-                    >
+                    </Button>
+                    <Button type="button" variant="secondary" onClick={handleLogout}>
                       Logout
-                    </button>
+                    </Button>
                   </div>
                 </form>
+
+                {/* Add fullscreen controls if authenticated */}
+                <div className="mt-4 border-t border-gray-200 pt-4">
+                  <h3 className="text-sm font-medium text-gray-700">Display Settings</h3>
+                  <div className="mt-2 flex items-center justify-between">
+                    <span>Fullscreen Mode</span>
+                    <FullscreenControls />
+                  </div>
+                </div>
               </div>
             )}
           </div>
