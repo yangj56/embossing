@@ -279,7 +279,7 @@ export const DrawingPad = forwardRef<DrawingPadRef, DrawingPadProps>(
           <div className="ml-auto flex space-x-2">
             <button
               onClick={clearCanvas}
-              className="rounded-lg bg-red-500 px-3 py-2 text-white hover:bg-red-600"
+              className="text-white hover:bg-red-600 rounded-lg bg-chart-5 px-3 py-2"
               title="Clear Canvas"
             >
               Clear
@@ -289,7 +289,7 @@ export const DrawingPad = forwardRef<DrawingPadRef, DrawingPadProps>(
             {!hideSaveButton && (
               <button
                 onClick={saveCanvas}
-                className="rounded-lg bg-green-500 px-3 py-2 text-white hover:bg-green-600"
+                className="bg-green-500 text-white hover:bg-green-600 rounded-lg px-3 py-2"
                 title="Save Design"
               >
                 <Download size={24} className="mr-1 inline" />
@@ -308,12 +308,12 @@ export const DrawingPad = forwardRef<DrawingPadRef, DrawingPadProps>(
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
                 placeholder="Enter text..."
-                className="flex-1 rounded-lg border border-gray-300 p-2"
+                className="border-gray-300 flex-1 rounded-lg border p-2"
               />
               <select
                 value={selectedFont}
                 onChange={(e) => setSelectedFont(e.target.value)}
-                className="rounded-lg border border-gray-300 p-2"
+                className="border-gray-300 rounded-lg border p-2"
               >
                 {AVAILABLE_FONTS.map((font) => (
                   <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
@@ -323,12 +323,12 @@ export const DrawingPad = forwardRef<DrawingPadRef, DrawingPadProps>(
               </select>
               <button
                 onClick={addText}
-                className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2"
               >
                 Add Text
               </button>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-gray-500 text-sm">
               Preview:{" "}
               <span style={{ fontFamily: selectedFont }}>{textInput || "Sample Text"}</span>
             </div>
@@ -337,7 +337,7 @@ export const DrawingPad = forwardRef<DrawingPadRef, DrawingPadProps>(
 
         {/* Canvas Container */}
         <div
-          className="relative border border-gray-300"
+          className="border-gray-300 relative border"
           style={{
             width: `${width + 10}px`,
             height: `${height + 10}px`,

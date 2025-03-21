@@ -2,6 +2,7 @@ import "./globals.css";
 import { Poppins } from "next/font/google";
 import type { Metadata } from "next";
 import { SettingsProvider } from "./context/settings";
+import { ThemeProvider } from "./_components/theme-provider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -22,9 +23,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={poppins.variable}>
+      <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
         <SettingsProvider>
-          <div className="flex min-h-screen w-full flex-col items-center">{children}</div>
+          <div className="flex min-h-screen w-full flex-col items-center bg-foreground">
+            {children}
+          </div>
         </SettingsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
