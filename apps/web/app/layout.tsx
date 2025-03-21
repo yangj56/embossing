@@ -3,7 +3,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 
-import { ThemeProvider } from "./_components/theme-provider";
 import { SettingsProvider } from "./context/settings";
 
 const poppins = Poppins({
@@ -26,7 +25,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={poppins.variable}>
                 <SettingsProvider>
-                    <div className="flex min-h-screen w-full flex-col items-center bg-foreground">
+                    <div className="flex min-h-screen w-full flex-col items-center bg-chart-1">
                         {children}
                     </div>
                 </SettingsProvider>

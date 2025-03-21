@@ -1,10 +1,11 @@
 import React from "react";
-import { Kiosk } from "./_components/kiosk";
 
-export default function HomePage() {
-  return (
-    <div className="container">
-      <Kiosk />
-    </div>
-  );
+import { Welcome } from "./_components/welcome";
+
+export default function Page() {
+    return (
+        <div className="container">
+            <Welcome />
+        </div>
+    );
 }

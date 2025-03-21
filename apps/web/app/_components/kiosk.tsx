@@ -10,7 +10,7 @@ export function Kiosk() {
     const apiUrl = useApiUrl();
 
     return (
-        <div className="container">
+        <div>
             <div className="mb-6 flex justify-end">
                 <AdminManager />
             </div>
