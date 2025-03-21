@@ -140,6 +140,30 @@ export function FrontKiosk({ apiUrl }: Props) {
                     Enter your details
                 </h2>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Drawing Pad */}
+                    <div className="flex w-full flex-col items-center justify-center">
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                            Create Your Design
+                        </label>
+                        <p className="mb-4 text-sm text-gray-500">
+                            Use the drawing tools below to create your{" "}
+                            {selectedModel} design
+                        </p>
+                        <DrawingPad ref={drawingPadRef} hideSaveButton={true} />
+                        {/* Result Message */}
+                        {submitResult && (
+                            <div
+                                className={`mt-6 rounded-lg p-4 ${
+                                    submitResult.success
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-red-100 text-red-700"
+                                }`}
+                            >
+                                {submitResult.message}
+                            </div>
+                        )}
+                    </div>
+
                     {/* User Information */}
                     <div className="grid grid-cols-1 gap-4">
                         <div>
@@ -212,31 +236,6 @@ export function FrontKiosk({ apiUrl }: Props) {
                             </p>
                         </div>
                     </div>
-
-                    {/* Drawing Pad */}
-                    <div className="flex w-full flex-col items-center justify-center">
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Create Your Design
-                        </label>
-                        <p className="mb-4 text-sm text-gray-500">
-                            Use the drawing tools below to create your{" "}
-                            {selectedModel} design
-                        </p>
-                        <DrawingPad ref={drawingPadRef} hideSaveButton={true} />
-                        {/* Result Message */}
-                        {submitResult && (
-                            <div
-                                className={`mt-6 rounded-lg p-4 ${
-                                    submitResult.success
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-red-100 text-red-700"
-                                }`}
-                            >
-                                {submitResult.message}
-                            </div>
-                        )}
-                    </div>
-
                     {/* Submit Button */}
                     <div className="mb-8 mt-4 flex items-center justify-between">
                         <Button
@@ -253,19 +252,6 @@ export function FrontKiosk({ apiUrl }: Props) {
                         </p>
                     </div>
                 </form>
-            </div>
-
-            <div className="mt-4 rounded-lg bg-gray-100 p-4">
-                <h2 className="mb-2 text-xl font-bold">Instructions</h2>
-                <ol className="list-decimal space-y-2 pl-5">
-                    <li>Enter your name and contact number</li>
-                    <li>Select the model type ({selectedModel})</li>
-                    <li>Use the drawing tools to create your design</li>
-                    <li>
-                        Your design will be saved and sent to the{" "}
-                        {selectedModel} machine
-                    </li>
-                </ol>
             </div>
         </div>
     );
